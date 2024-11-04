@@ -3,50 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UTM Content Generator</title>
+    <title>eCatalog UTM Content Generator by Tomski</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+        select, input[type="text"], input[type="url"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .result-item {
+            margin-bottom: 10px;
+        }
+        .copy-button {
+            padding: 5px 10px;
+            margin-left: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .copy-button:hover {
+            background-color: #0056b3;
+        }
+        .delete-button, .clear-button {
+            padding: 5px 10px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .delete-button:hover, .clear-button:hover {
+            background-color: #e60000;
+        }
+        #warningMessage {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
 <div>
-    <h1>UTM Content Generator</h1>
-
+    <h1>eCatalog UTM Content Generator 💕</h1>
+    <h4>Made with love by R&D - Amel | <a href="https://docs.google.com/spreadsheets/d/1VeGO1r8hYOAU3aKVUIMrTL_T167ba0om/edit?usp=sharing&ouid=117464724516898944407&rtpof=true&sd=true">📍Link UTM List (Setor Kesini)📃</a></h4>
     <!-- Form untuk input data -->
     <form id="utmForm">
         <label for="description">Description / Projects:</label>
         <select id="description" name="description">
             <option value="Ecatalog Article">Ecatalog Article</option>
-        </select><br>
+        </select>
 
         <label for="source">Source:</label>
         <select id="source" name="source">
             <option value="ecatalog">ecatalog</option>
-        </select><br>
+        </select>
 
         <label for="medium">Medium:</label>
         <select id="medium" name="medium">
             <option value="ecatalogOrganic">ecatalogOrganic</option>
-        </select><br>
+        </select>
 
         <label for="campaign">Campaign:</label>
         <select id="campaign" name="campaign">
             <option value="ecatalog_articleint">ecatalog_articleint</option>
-        </select><br>
+        </select>
 
         <label for="year">Year:</label>
         <select id="year" name="year">
             <option value="2024">2024</option>
-        </select><br>
+        </select>
 
         <label for="month">Month:</label>
         <select id="month" name="month">
             <option value="11">11</option>
             <option value="12">12</option>
-        </select><br>
+        </select>
 
         <label for="code">Code:</label>
         <select id="code" name="code">
             <option value="int">int</option>
-        </select><br>
+        </select>
 
         <label for="number">Numbering:</label>
         <select id="number" name="number">
@@ -56,38 +142,43 @@
                     document.write(`<option value="${formattedNumber}">${formattedNumber}</option>`);
                 }
             </script>
-        </select><br>
+        </select>
 
-        <label for="project">Project Code (if applicable):</label>
-        <input type="text" id="project" oninput="toggleClusterField()"><br>
+        <label for="project">Project (kalau ada):</label>
+        <input type="text" id="project" oninput="toggleClusterField()">
 
-        <label for="cluster">Cluster (if applicable):</label>
-        <input type="text" id="cluster" disabled><br>
+        <label for="cluster">Cluster (kalau ada):</label>
+        <input type="text" id="cluster" disabled>
 
         <label for="url">URL:</label>
-        <input type="url" id="url" required><br>
+        <input type="url" id="url" required>
 
         <button type="button" onclick="generateTaggedUrl()">Generate Tagged URL</button>
     </form>
 
-    <div id="resultContainer" style="display: none;">
-        <h2>Generated UTM Content and Tagged URL</h2>
+    <div id="resultContainer" class="result-container" style="display: none;">
+        <h2>Generated eCatalog UTM Content and Final URL</h2>
         <div>
             <strong>Content:</strong>
+            <p></p>
             <div id="generatedContent"></div>
-            <button onclick="copyToClipboard('generatedContent')">Copy</button>
+            <br>
+            <button class="copy-button" onclick="copyToClipboard('generatedContent')">Copy</button>
             <span id="contentLengthIndicator"></span>
         </div>
         <div>
+            <br>
             <strong>Tagged URL:</strong>
+            <p></p>
             <div id="generatedTaggedUrl"></div>
-            <button onclick="copyToClipboard('generatedTaggedUrl')">Copy</button>
+            <br>
+            <button class="copy-button" onclick="copyToClipboard('generatedTaggedUrl')">Copy</button>
         </div>
         <p id="warningMessage"></p>
     </div>
 
     <!-- Tabel Riwayat Input -->
-    <table id="historyTable" style="display: none; width: 100%; border-collapse: collapse; margin-top: 20px;">
+    <table id="historyTable" style="display: none;">
         <thead>
             <tr>
                 <th>Description / Projects</th>
@@ -97,11 +188,14 @@
                 <th>Content</th>
                 <th>URL</th>
                 <th>Tagged URL</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
         </tbody>
     </table>
+    <br>
+    <button class="clear-button" onclick="clearHistoryTable()" style="display: none;" id="clearButton">Clear All</button>
 </div>
 
 <script>
@@ -181,7 +275,33 @@
         row.insertCell(4).innerText = content;
         row.insertCell(5).innerText = url;
         row.insertCell(6).innerText = taggedUrl;
+
+        // Menambahkan tombol delete pada row
+        const actionCell = row.insertCell(7);
+        const deleteButton = document.createElement("button");
+        deleteButton.innerText = "Delete";
+        deleteButton.className = "delete-button";
+        deleteButton.onclick = () => {
+            historyTable.deleteRow(row.rowIndex);
+            if (historyTable.rows.length === 1) {
+                document.getElementById("historyTable").style.display = "none";
+                document.getElementById("clearButton").style.display = "none";
+            }
+        };
+        actionCell.appendChild(deleteButton);
+
         historyTable.style.display = "table";
+        document.getElementById("clearButton").style.display = "inline";
+    }
+
+    function clearHistoryTable() {
+        const historyTable = document.getElementById("historyTable");
+        const rowCount = historyTable.rows.length;
+        for (let i = rowCount - 1; i > 0; i--) {
+            historyTable.deleteRow(i);
+        }
+        document.getElementById("historyTable").style.display = "none";
+        document.getElementById("clearButton").style.display = "none";
     }
 
     function copyToClipboard(elementId) {
