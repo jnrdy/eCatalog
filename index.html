@@ -9,7 +9,7 @@
 <body>
 <div>
 <h1>eCatalog UTM Content Generator 💕</h1>
-<h4>Version 2.0 Production | <a href="https://docs.google.com/spreadsheets/d/1VeGO1r8hYOAU3aKVUIMrTL_T167ba0om/edit?usp=sharing&ouid=117464724516898944407&rtpof=true&sd=true">📍Link UTM List (Setor Kesini)📃</a></h4>
+<h4>Version 2.1 Production | <a href="https://docs.google.com/spreadsheets/d/1VeGO1r8hYOAU3aKVUIMrTL_T167ba0om/edit?usp=sharing&ouid=117464724516898944407&rtpof=true&sd=true">📍Link UTM List (Setor Kesini)📃</a></h4>
 <form id=utmForm>
 <label for=description>Description / Projects:</label>
 <select id=description name=description>
@@ -49,7 +49,7 @@
 <div id=autoFillContainer>
 <label for=autoFillOption>Auto Fill Options:</label>
 <select id=autoFillOption onchange=checkAutoFill()>
-<option value>Select Auto Fill</option>
+<option value>No Auto Fill</option>
 <option value=project>Project Only</option>
 <option value=projectCluster>Project & Cluster</option>
 <option value=projectClusterListing>Project, Cluster & Kode Listing</option>
@@ -62,7 +62,7 @@
 <div id=bsdCityOptions style=display:none>
 <label for=bsdCorrection><font color=red>Select BSD Project Type:</font></label>
 <select id=bsdCorrection onchange=setBsdProjectType()>
-<option value>Select Type</option>
+<option value>Pilih BSD Residential/BSD Commercial</option>
 <option value="bsd residential">BSD Residential</option>
 <option value="bsd commercial">BSD Commercial</option>
 </select>
@@ -77,7 +77,7 @@
 </div>
 <button type=button id=generateButton onclick=generateTaggedUrl()>Generate Tagged URL</button>
 <button type=button onclick=clearFields()>Clear Fields</button>
-<label>Ingat untuk selalu "Clear Fields" untuk reset dan menginput UTM baru</label>
+<p>Ingat untuk selalu "Clear Fields" setiap menginput UTM baru</p>
 </form>
 <div id=resultContainer class=result-container style=display:none>
 <h2>Generated eCatalog UTM Content and Final URL</h2>
