@@ -227,25 +227,25 @@ th {
             <button type=button id=clearFieldsButton onclick="clearFields()">Clear Fields</button>
             <p>Ingat untuk selalu "Clear Fields" setiap menginput UTM baru</p>
         </form>
-        <div id=resultContainer class=result-container style=display:none>
+        <div id="resultContainer" class="result-container" style="display:none">
             <h2>Generated eCatalog UTM Content and Final URL</h2>
             <div>
                 <strong>Content:</strong>
                 <p></p>
-                <div id=generatedContent></div>
+                <div id="generatedContent"></div>
                 <br>
-                <button class=copy-button onclick="copyToClipboard('generatedContent')">Copy</button>
-                <span id=contentLengthIndicator></span>
+                <button id="copyGeneratedContentButton" class="copy-button">Copy</button>
+                <span id="contentLengthIndicator"></span>
             </div>
             <div>
                 <br>
                 <strong>Tagged URL:</strong>
                 <p></p>
-                <div id=generatedTaggedUrl></div>
+                <div id="generatedTaggedUrl"></div>
                 <br>
-                <button class=copy-button onclick="copyToClipboard('generatedTaggedUrl')">Copy</button>
+                <button id="copyGeneratedTaggedUrlButton" class="copy-button">Copy</button>
             </div>
-            <p id=warningMessage></p>
+            <p id="warningMessage"></p>
         </div>
         <br>
         <h2>Realtime Table History</h2>
@@ -361,15 +361,19 @@ th {
         };
 
         document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("generateButton").onclick = generateTaggedUrl;
-        document.getElementById("clearFieldsButton").onclick = clearFields; // Correctly binds Clear Fields button
-        document.getElementById("scrollToTop").onclick = scrollToTop;
-        document.getElementById("scrollToBottom").onclick = scrollToBottom;
-        loadUTMData();
-        document.getElementById("url").oninput = checkSpecificUrl;
-        document.getElementById("autoFillOption").onchange = checkAutoFill;
-        document.getElementById("bsdCorrection").onchange = setBsdProjectType;
-    });
+    document.getElementById("generateButton").onclick = generateTaggedUrl;
+    document.getElementById("clearFieldsButton").onclick = clearFields;
+    document.getElementById("scrollToTop").onclick = scrollToTop;
+    document.getElementById("scrollToBottom").onclick = scrollToBottom;
+    loadUTMData();
+    document.getElementById("url").oninput = checkSpecificUrl;
+    document.getElementById("autoFillOption").onchange = checkAutoFill;
+    document.getElementById("bsdCorrection").onchange = setBsdProjectType;
+
+    // Bind the copy buttons to the copyToClipboard function
+    document.getElementById("copyGeneratedContentButton").onclick = () => copyToClipboard("generatedContent");
+    document.getElementById("copyGeneratedTaggedUrlButton").onclick = () => copyToClipboard("generatedTaggedUrl");
+});
 
     // Function to generate UTM-tagged URL and save to Firebase
     function generateTaggedUrl() {
@@ -575,6 +579,15 @@ function scrollToField(fieldId) {
     } else {
         console.error(`Element with ID '${fieldId}' not found.`);
     }
+}
+
+function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert("Copied to clipboard!");
+    }).catch(err => {
+        console.error("Failed to copy:", err);
+    });
 }
 </script>
     
