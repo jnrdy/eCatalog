@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eCatalog RnD Features Menu</title>
+    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNFv-XFTDd2sLQfC9OIlPThq9OzhL3RZj2uQ&s" type="image/png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff; /* Warna putih */
+            color: #333;
+        }
+        header {
+            background-color: #d91e18; /* Warna merah sesuai logo */
+            color: #ffffff; /* Warna teks putih */
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+        header img {
+            width: 60px;
+            height: auto;
+            border-radius: 5px;
+        }
+        header div {
+            text-align: right;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        header h2 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: normal;
+        }
+        main {
+            padding: 20px;
+        }
+        main h2 {
+            color: #d91e18; /* Warna merah untuk judul */
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            margin: 15px 0;
+        }
+        ul li a {
+            display: block;
+            text-decoration: none;
+            color: #ffffff; /* Warna teks putih */
+            padding: 15px 20px;
+            background-color: #d91e18; /* Warna merah */
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        ul li a:hover {
+            background-color: #ba1b14; /* Warna merah lebih gelap */
+            transform: scale(1.01); /* Efek zoom */
+        }
+        /* Media query untuk tampilan mobile */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: row;
+            }
+            header img {
+                width: 50px; /* Sesuaikan ukuran logo untuk layar kecil */
+            }
+            header div {
+                text-align: right;
+            }
+            header h1 {
+                font-size: 18px; /* Kurangi ukuran font untuk mobile */
+            }
+            header h2 {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNFv-XFTDd2sLQfC9OIlPThq9OzhL3RZj2uQ&s" alt="e-Catalog Logo">
+        <div>
+            <h1>eCatalog RnD Features</h1>
+            <h2>by Thomas Januardy</h2>
+        </div>
+    </header>
+    <main>
+        <h2>Available Features</h2>
+        <ul>
+            <li><a href="https://jnrdy.github.io/eCatalog/utm/" target="_blank">UTM Generator</a></li>
+            <li><a href="https://jnrdy.github.io/eCatalog/sitespeed/" target="_blank">Sitespeed Generator</a></li>
+        </ul>
+    </main>
+</body>
+</html>
