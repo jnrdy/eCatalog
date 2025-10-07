@@ -5,7 +5,8 @@
     <meta charset=UTF-8>
     <meta name=viewport content="width=device-width, initial-scale=1.0">
     <title>eCatalog UTM Content Generator by Tomski V2.3</title>
-    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNFv-XFTDd2sLQfC9OIlPThq9OzhL3RZj2uQ&s" type="image/png">
+    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNFv-XFTDd2sLQfC9OIlPThq9OzhL3RZj2uQ&s"
+        type="image/png">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,7 +40,7 @@
             background-color: #d91e18;
             color: white;
             border: 0;
-            border-radius:5px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
         }
@@ -197,7 +198,14 @@
                 <option value=ecatalog_articleint>ecatalog_articleint</option>
                 <option value=ecatalog_articleenr>ecatalog_articleenr</option>
             </select>
-            <p>Biasanya buat link UTM untuk tim SEO dan AM, Description - Campaign tidak perlu diganti-ganti</p>
+            <p>Biasanya buat link UTM untuk tim SEO dan AM, Description - Campaign tidak perlu diganti-ganti.</p>
+            <label for="paramStart">Parameter Start Symbol:</label>
+            <select id="paramStart" name="paramStart">
+                <option value="?">?</option>
+                <option value="&">&</option>
+            </select>
+            <p>Gunakan start parameter "?" bila URL yang diinput tidak ada simbol "?".</p>
+            <p>Gunakan start parameter "&" bila URL yang diinput sudah terdapat simbol "?".</p>
             <h2>Content UTM</h2>
             <label for=year>Year:</label>
             <select id=year name=year>
@@ -233,6 +241,9 @@
             </select>
             <label for=url>URL:</label>
             <input type=url id=url required oninput=checkSpecificUrl()>
+            <p id="paramWarning" style="color:red; font-weight:bold; display:none;">
+                ⚠️ URL sudah mengandung parameter, ubah Parameter Start Symbol menjadi "&" agar valid.
+            </p>
             <div id=autoFillContainer>
                 <label for=autoFillOption>Auto Fill Options:</label>
                 <select id=autoFillOption onchange=checkAutoFill()>
@@ -314,7 +325,7 @@
             <button id="scrollToBottom" onclick="scrollToBottom()">Page Down</button>
         </div>
     </div>
-    
+
     <script type="module">
         // Import Firebase SDK modules
         import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
@@ -369,10 +380,12 @@
             "onesmile": "ons",
             "rancamaya golf estate": "rge",
             "grand wisata": "gws",
-            "royal tajur residence": "rtr"
+            "royal tajur residence": "rtr",
+            "harvest city": "hct"
         };
         const specificUrls = {
             "https://ecatalog.sinarmasland.com/infiniteliving": "infiniteliving",
+            "https://ecatalog.sinarmasland.com/moveinquickly": "moveinquickly",
             "https://ecatalog.sinarmasland.com/sinarmas-pillar": "smpillar",
             "https://ecatalog.sinarmasland.com/search": "search",
             "https://ecatalog.sinarmasland.com/signup": "signup",
@@ -404,7 +417,7 @@
             "https://ecatalog.sinarmasland.com/city/cikarang": "cikarang",
             "https://ecatalog.sinarmasland.com/city/cibubur": "cibubur",
             "https://ecatalog.sinarmasland.com/city/bogor": "bogor",
-            "https://ecatalog.sinarmasland.com/city/bogor": "bekasi"
+            "https://ecatalog.sinarmasland.com/city/bekasi": "bekasi"
         };
         const conditionalClusterUrls = {
             "https://ecatalog.sinarmasland.com/project/bsd-city/cluster/northridge-business-center-phase-2-at-bsd-city": "northridge2",
@@ -440,11 +453,24 @@
             // Bind the copy buttons to the copyToClipboard function
             document.getElementById("copyGeneratedContentButton").onclick = () => copyToClipboard("generatedContent");
             document.getElementById("copyGeneratedTaggedUrlButton").onclick = () => copyToClipboard("generatedTaggedUrl");
-            
+
             // Add listener for URL sanitization
             const urlField = document.getElementById("url");
             urlField.addEventListener("input", sanitizeUrlInput);
+
+            // --- Tambahan validasi untuk paramStart ---
+            const paramStartField = document.getElementById("paramStart");
+
+            // Jalankan validasi setiap kali URL atau paramStart berubah
+            paramStartField.addEventListener("change", validateParamStart);
+            urlField.addEventListener("input", validateParamStart);
+            validateParamStart();
+
         });
+
+        // ParamStart Event Listener
+        document.getElementById("paramStart").addEventListener("change", validateParamStart);
+        urlField.addEventListener("input", validateParamStart);
 
         // Function to sanitize URL input
         function sanitizeUrlInput(event) {
@@ -457,6 +483,28 @@
                 .toLowerCase();          // Convert to lowercase (optional)
         }
 
+        function validateParamStart() {
+            const url = document.getElementById("url").value.trim();
+            const paramStart = document.getElementById("paramStart").value;
+            const warning = document.getElementById("paramWarning");
+            const generateButton = document.getElementById("generateButton");
+
+            // Kondisi: URL mengandung parameter dan user memilih "?"
+            if (paramStart === "?" && (url.includes("?") || url.includes("="))) {
+                warning.style.display = "block";
+                generateButton.disabled = true;
+                generateButton.style.opacity = "0.5";
+                generateButton.style.cursor = "not-allowed";
+            } else {
+                warning.style.display = "none";
+                generateButton.disabled = false;
+                generateButton.style.opacity = "1";
+                generateButton.style.cursor = "pointer";
+            }
+        }
+
+
+
         // Function to generate UTM-tagged URL and save to Firebase
         function generateTaggedUrl() {
             const description = document.getElementById("description").value;
@@ -468,6 +516,7 @@
             const code = document.getElementById("code").value;
             const number = document.getElementById("number").value;
             const url = document.getElementById("url").value;
+            const paramStart = document.getElementById("paramStart").value;
 
             let content = `${year}_${month}_${code}_${number}`;
             if (specificUrls[url]) {
@@ -484,7 +533,7 @@
                 if (listing) content += `_${listing}`;
             }
 
-            const taggedUrl = `${url}?utm_source=${source}&utm_medium=${medium}&utm_campaign=${campaign}&utm_content=${content}`;
+            const taggedUrl = `${url}${paramStart}utm_source=${source}&utm_medium=${medium}&utm_campaign=${campaign}&utm_content=${content}`;
 
             document.getElementById("generatedContent").innerText = content;
             document.getElementById("generatedTaggedUrl").innerText = taggedUrl;
@@ -588,50 +637,50 @@
 
         // Function to extract fields from the URL based on selected autofill option
         function extractFieldsFromUrl(url, option) {
-    try {
-        const urlObj = new URL(url);
-        const pathSegments = urlObj.pathname.split("/");
-        const projectIndex = pathSegments.indexOf("project");
-        const clusterIndex = pathSegments.indexOf("cluster");
-        const propertyIndex = pathSegments.indexOf("property");
+            try {
+                const urlObj = new URL(url);
+                const pathSegments = urlObj.pathname.split("/");
+                const projectIndex = pathSegments.indexOf("project");
+                const clusterIndex = pathSegments.indexOf("cluster");
+                const propertyIndex = pathSegments.indexOf("property");
 
-        // Update project if available
-        if (projectIndex !== -1 && pathSegments[projectIndex + 1]) {
-            const projectName = pathSegments[projectIndex + 1].replace(/-/g, " ");
-            document.getElementById("project").value = projectName;
+                // Update project if available
+                if (projectIndex !== -1 && pathSegments[projectIndex + 1]) {
+                    const projectName = pathSegments[projectIndex + 1].replace(/-/g, " ");
+                    document.getElementById("project").value = projectName;
 
-            // Always check for BSD City-specific logic
-            checkForBsdCity();
-        }
+                    // Always check for BSD City-specific logic
+                    checkForBsdCity();
+                }
 
-        // Check if the full URL matches any conditional case (including additional segments)
-        const baseUrl = url.split("?")[0]; // Remove query parameters
-        for (const [key, clusterName] of Object.entries(conditionalClusterUrls)) {
-            if (baseUrl.startsWith(key)) {
-                document.getElementById("cluster").value = clusterName;
+                // Check if the full URL matches any conditional case (including additional segments)
+                const baseUrl = url.split("?")[0]; // Remove query parameters
+                for (const [key, clusterName] of Object.entries(conditionalClusterUrls)) {
+                    if (baseUrl.startsWith(key)) {
+                        document.getElementById("cluster").value = clusterName;
 
-                // Extract property if present and option includes listing
+                        // Extract property if present and option includes listing
+                        if (option === "projectClusterListing" && propertyIndex !== -1 && pathSegments[propertyIndex + 1]) {
+                            document.getElementById("listing").value = pathSegments[propertyIndex + 1].toLowerCase();
+                        }
+                        return; // Stop further processing since a match is found
+                    }
+                }
+
+                // Default behavior for extracting cluster
+                if ((option === "projectCluster" || option === "projectClusterListing") && clusterIndex !== -1 && pathSegments[clusterIndex + 1]) {
+                    const clusterName = pathSegments[clusterIndex + 1].split("-")[0];
+                    document.getElementById("cluster").value = clusterName;
+                }
+
+                // Default behavior for extracting listing
                 if (option === "projectClusterListing" && propertyIndex !== -1 && pathSegments[propertyIndex + 1]) {
                     document.getElementById("listing").value = pathSegments[propertyIndex + 1].toLowerCase();
                 }
-                return; // Stop further processing since a match is found
+            } catch (error) {
+                console.error("Invalid URL:", error);
             }
         }
-
-        // Default behavior for extracting cluster
-        if ((option === "projectCluster" || option === "projectClusterListing") && clusterIndex !== -1 && pathSegments[clusterIndex + 1]) {
-            const clusterName = pathSegments[clusterIndex + 1].split("-")[0];
-            document.getElementById("cluster").value = clusterName;
-        }
-
-        // Default behavior for extracting listing
-        if (option === "projectClusterListing" && propertyIndex !== -1 && pathSegments[propertyIndex + 1]) {
-            document.getElementById("listing").value = pathSegments[propertyIndex + 1].toLowerCase();
-        }
-    } catch (error) {
-        console.error("Invalid URL:", error);
-    }
-}
 
 
 
@@ -700,4 +749,3 @@
 </body>
 
 </html>
-
