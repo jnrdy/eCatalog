@@ -1,267 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>eCatalog Data Analysis: Leads Classifier</title>
-  <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNFv-XFTDd2sLQfC9OIlPThq9OzhL3RZj2uQ&s" type="image/png">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1 { color: #333; }
-    h2 { color: #333; margin-top: 24px; margin-bottom: 4px; }
-    p { color: #444; }
-    .controls {
-      margin: 16px 0;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    label {
-      font-size: 16px;
-      color: #333;
-    }
-    input[type="file"] {
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-    }
-    input[type="date"] {
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-      padding: 6px 8px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      color: white;
-      background-color: #d91e18;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #ba1b14;
-    }
-    #status {
-      font-size: 13px;
-      color: #555;
-      margin: 8px 0;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      max-width: 700px;
-      margin-top: 10px;
-      font-size: 16px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px 12px;
-      text-align: center;
-    }
-    th {
-      background-color: #f4f4f4;
-      color: #333;
-      font-weight: bold;
-    }
-    td:first-child { text-align: left; }
-    tr.section-header td {
-      background-color: #d91e18;
-      color: white;
-      font-weight: bold;
-    }
-    tr.sub td:first-child { padding-left: 28px; }
-    #result { display: none; margin-top: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eCatalog RnD Features Menu</title>
+    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNFv-XFTDd2sLQfC9OIlPThq9OzhL3RZj2uQ&s" type="image/png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff; /* Warna putih */
+            color: #333;
+        }
+        header {
+            background-color: #d91e18; /* Warna merah sesuai logo */
+            color: #ffffff; /* Warna teks putih */
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+        header img {
+            width: 60px;
+            height: auto;
+            border-radius: 5px;
+        }
+        header div {
+            text-align: right;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        header h2 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: normal;
+        }
+        main {
+            padding: 20px;
+        }
+        main h2 {
+            color: #d91e18; /* Warna merah untuk judul */
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            margin: 15px 0;
+        }
+        ul li a {
+            display: block;
+            text-decoration: none;
+            color: #ffffff; /* Warna teks putih */
+            padding: 15px 20px;
+            background-color: #d91e18; /* Warna merah */
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        ul li a:hover {
+            background-color: #ba1b14; /* Warna merah lebih gelap */
+            transform: scale(1.01); /* Efek zoom */
+        }
+        /* Media query untuk tampilan mobile */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: row;
+            }
+            header img {
+                width: 50px; /* Sesuaikan ukuran logo untuk layar kecil */
+            }
+            header div {
+                text-align: right;
+            }
+            header h1 {
+                font-size: 18px; /* Kurangi ukuran font untuk mobile */
+            }
+            header h2 {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>eCatalog Data Analysis: Leads Classifier</h1>
-  <h4>by Tomski | Version 1.0</h4>
-  <p>Export file CSV dari <strong><a href="https://docs.google.com/spreadsheets/d/1fx-ycTsuDryIUZY-bJKZVFa89_vMxQNWvQlriPNMhIM/edit?usp=sharing">Sheet Leads Management</a></strong>, upload file CSV export, isi tanggal referensi MTD, lalu klik <strong>Analyze</strong>.</p>
-
-  <div class="controls">
-    <input type="file" id="csvFile" accept=".csv">
-    <label style="font-size:16px;">Tanggal MTD:
-      <input type="date" id="refDate" value="">
-    </label>
-    <button onclick="analyze()">Analyze</button>
-  </div>
-
-  <div id="status"></div>
-
-  <div id="result">
-    <table id="resultTable">
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>MTD</th>
-          <th>LMTD</th>
-          <th>LM</th>
-          <th>YTD</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
-
-  <script>
-    // Set default date to today
-    document.getElementById('refDate').value = new Date().toISOString().split('T')[0];
-
-    function parseCSV(text) {
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-      const rows = [];
-      for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        // Simple CSV parse (handles quoted fields)
-        const cols = splitCSVLine(lines[i]);
-        if (cols.length < headers.length) continue;
-        const row = {};
-        headers.forEach((h, idx) => {
-          row[h] = (cols[idx] || '').trim().replace(/^"|"$/g, '');
-        });
-        rows.push(row);
-      }
-      return rows;
-    }
-
-    function splitCSVLine(line) {
-      const result = [];
-      let cur = '';
-      let inQuote = false;
-      for (let i = 0; i < line.length; i++) {
-        const c = line[i];
-        if (c === '"') { inQuote = !inQuote; }
-        else if (c === ',' && !inQuote) { result.push(cur); cur = ''; }
-        else { cur += c; }
-      }
-      result.push(cur);
-      return result;
-    }
-
-    function parseDate(str) {
-      if (!str || str.trim() === '' || str.trim().toLowerCase() === 'nan') return null;
-      // Format: "27 Jan 2026 13:18" or "04 February 2026 14:27"
-      const months = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
-                       january:0,february:1,march:2,april:3,june:5,july:6,august:7,september:8,october:9,november:10,december:11 };
-      const parts = str.trim().split(/[\s:]+/);
-      // parts: ["27","Jan","2026","13","18"]
-      if (parts.length < 3) return null;
-      const day = parseInt(parts[0]);
-      const mon = months[parts[1].toLowerCase()];
-      const year = parseInt(parts[2]);
-      if (isNaN(day) || mon === undefined || isNaN(year)) return null;
-      return new Date(year, mon, day);
-    }
-
-    function analyze() {
-      const fileInput = document.getElementById('csvFile');
-      const refDateVal = document.getElementById('refDate').value;
-      const status = document.getElementById('status');
-
-      if (!fileInput.files[0]) { status.textContent = '⚠ Pilih file CSV dulu.'; return; }
-      if (!refDateVal) { status.textContent = '⚠ Isi tanggal MTD dulu.'; return; }
-
-      status.textContent = 'Membaca file...';
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const rows = parseCSV(e.target.result);
-          status.textContent = `File terbaca: ${rows.length} rows. Menghitung...`;
-
-          const ref = new Date(refDateVal); // e.g. 2026-06-25
-          const refDay = ref.getDate();
-          const refMonth = ref.getMonth();    // 0-indexed
-          const refYear = ref.getFullYear();
-
-          // Period definitions
-          // MTD: Month column == current month name (from CSV)
-          const mtdMonthName = ref.toLocaleString('en-US', { month: 'long' }); // "June"
-
-          // Last day of previous month — handles Feb 28/29, months with 30 days
-          // Math.min prevents overflow e.g. ref=31 Mar → LMTD end = 28 Feb, not 3 Mar
-          const lastDayPrevMonth = new Date(refYear, refMonth, 0).getDate();
-          const lmtdDay = Math.min(refDay, lastDayPrevMonth);
-
-          // LMTD: 1st of prev month to lmtdDay of prev month
-          const lmtdStart = new Date(refYear, refMonth - 1, 1);
-          const lmtdEnd   = new Date(refYear, refMonth - 1, lmtdDay, 23, 59, 59);
-
-          // LM: full previous month
-          const lmStart = new Date(refYear, refMonth - 1, 1);
-          const lmEnd   = new Date(refYear, refMonth, 0, 23, 59, 59);
-
-          function inPeriod(row, period) {
-            if (period === 'MTD') {
-              return (row['Month'] || '').trim() === mtdMonthName;
-            }
-            if (period === 'YTD') return true; // semua row di CSV = YTD
-            const d = parseDate(row['Tanggal Enquiry']);
-            if (!d) return false;
-            if (period === 'LMTD') return d >= lmtdStart && d <= lmtdEnd;
-            if (period === 'LM')   return d >= lmStart   && d <= lmEnd;
-            return false;
-          }
-
-          function count(filter) {
-            const periods = ['MTD', 'LMTD', 'LM', 'YTD'];
-            return periods.map(p => rows.filter(r => inPeriod(r, p) && filter(r)).length);
-          }
-
-          // Agent Type filters
-          const isInhouse      = r => (r['Agent Type'] || '').trim() === 'inhouse';
-          const isInhouseJV    = r => (r['Agent Type'] || '').trim() === 'inhouse_jv';
-          const isNSF          = r => (r['Agent Type'] || '').trim() === 'nsf';
-          const isExternal     = r => ['external','digital_sales'].includes((r['Agent Type'] || '').trim());
-          const isNotFound     = r => {
-            const at = (r['Agent Type'] || '').trim();
-            return at === '' || at.toLowerCase() === 'nan';
-          };
-
-          // Lead Nature filters
-          const nature = (r, n) => (r['Lead Nature'] || '').trim().toLowerCase() === n.toLowerCase();
-
-          const rows_data = [
-            { label: 'Total Leads',     cls: 'section-header', vals: count(r => true) },
-            { label: 'SAP CX',          cls: 'section-header', vals: count(isInhouse) },
-            { label: 'Organic',         cls: 'sub',            vals: count(r => isInhouse(r) && nature(r,'Organic')) },
-            { label: 'Unique URL',      cls: 'sub',            vals: count(r => isInhouse(r) && nature(r,'Unique URL')) },
-            { label: 'Paid Ads',        cls: 'sub',            vals: count(r => isInhouse(r) && nature(r,'Paid Ads')) },
-            { label: 'Indirect',        cls: 'sub',            vals: count(r => isInhouse(r) && nature(r,'Indirect')) },
-            { label: 'JV Leads',        cls: 'section-header', vals: count(isInhouseJV) },
-            { label: 'Organic',         cls: 'sub',            vals: count(r => isInhouseJV(r) && nature(r,'Organic')) },
-            { label: 'Unique URL',      cls: 'sub',            vals: count(r => isInhouseJV(r) && nature(r,'Unique URL')) },
-            { label: 'Paid Ads',        cls: 'sub',            vals: count(r => isInhouseJV(r) && nature(r,'Paid Ads')) },
-            { label: 'Indirect',        cls: 'sub',            vals: count(r => isInhouseJV(r) && nature(r,'Indirect')) },
-            { label: 'NSF',             cls: 'section-header', vals: count(isNSF) },
-            { label: 'External Agent',  cls: 'section-header', vals: count(isExternal) },
-            { label: 'Not Found',       cls: 'section-header', vals: count(isNotFound) },
-          ];
-
-          const tbody = document.getElementById('tableBody');
-          tbody.innerHTML = '';
-          rows_data.forEach(row => {
-            const tr = document.createElement('tr');
-            if (row.cls) tr.className = row.cls;
-            tr.innerHTML = `<td>${row.label}</td>${row.vals.map(v => `<td>${v}</td>`).join('')}`;
-            tbody.appendChild(tr);
-          });
-
-          document.getElementById('result').style.display = 'block';
-          status.textContent = `✓ Selesai. Referensi tanggal: ${ref.toDateString()} | MTD bulan: ${mtdMonthName}`;
-        } catch(err) {
-          status.textContent = '✗ Error: ' + err.message;
-          console.error(err);
-        }
-      };
-      reader.readAsText(fileInput.files[0]);
-    }
-  </script>
+    <header>
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNFv-XFTDd2sLQfC9OIlPThq9OzhL3RZj2uQ&s" alt="e-Catalog Logo">
+        <div>
+            <h1>eCatalog RnD Features</h1>
+            <h2>V1.1</h2>
+        </div>
+    </header>
+    <main>
+        <h2>Available Features</h2>
+        <ul>
+            <li><a href="https://jnrdy.github.io/eCatalog/utm/" target="_blank">UTM Generator</a></li>
+            <li><a href="https://jnrdy.github.io/eCatalog/sitespeed/" target="_blank">Sitespeed Generator</a></li>
+        </ul>
+    </main>
 </body>
 </html>
