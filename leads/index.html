@@ -2,16 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>eCatalog Data Analysis: Leads Classifier</title>
-  <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNFv-XFTDd2sLQfC9OIlPThq9OzhL3RZj2uQ&s" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads Classifier</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
     }
     h1 { color: #333; }
-    h2 { color: #333; margin-top: 24px; margin-bottom: 4px; }
-    p { color: #444; }
+    h4 { color: #555; margin-top: 2px; }
+    p  { font-size: 14px; color: #444; }
+
     .controls {
       margin: 16px 0;
       display: flex;
@@ -19,44 +20,43 @@
       align-items: center;
       flex-wrap: wrap;
     }
-    label {
-      font-size: 16px;
-      color: #333;
-    }
     input[type="file"] {
       font-family: Arial, sans-serif;
-      font-size: 16px;
+      font-size: 14px;
     }
     input[type="date"] {
       font-family: Arial, sans-serif;
-      font-size: 16px;
+      font-size: 14px;
       padding: 6px 8px;
       border: 1px solid #ddd;
       border-radius: 5px;
     }
+    label { font-size: 14px; color: #333; }
+
     button {
       padding: 10px 20px;
-      font-size: 16px;
+      font-size: 14px;
       color: white;
       background-color: #d91e18;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #ba1b14;
-    }
+    button:hover { background-color: #ba1b14; }
+
     #status {
       font-size: 13px;
       color: #555;
       margin: 8px 0;
+      min-height: 18px;
     }
+
     table {
       border-collapse: collapse;
       width: 100%;
       max-width: 700px;
       margin-top: 10px;
-      font-size: 16px;
+      font-size: 14px;
     }
     th, td {
       border: 1px solid #ddd;
@@ -79,14 +79,14 @@
   </style>
 </head>
 <body>
-  <h1>eCatalog Data Analysis: Leads Classifier</h1>
-  <h4>by Tomski | Version 1.0</h4>
-  <p>Export file CSV dari <strong><a href="https://docs.google.com/spreadsheets/d/1fx-ycTsuDryIUZY-bJKZVFa89_vMxQNWvQlriPNMhIM/edit?usp=sharing">Sheet Leads Management</a></strong>, upload file CSV export, isi tanggal referensi MTD, lalu klik <strong>Analyze</strong>.</p>
+  <h1>Leads Classifier</h1>
+  <h4>by Tomski | MTD Report Tool</h4>
+  <p>Upload file CSV export, isi tanggal referensi MTD, lalu klik <strong>Analyze</strong>.</p>
 
   <div class="controls">
     <input type="file" id="csvFile" accept=".csv">
-    <label style="font-size:16px;">Tanggal MTD:
-      <input type="date" id="refDate" value="">
+    <label>Tanggal MTD:
+      <input type="date" id="refDate">
     </label>
     <button onclick="analyze()">Analyze</button>
   </div>
@@ -94,7 +94,7 @@
   <div id="status"></div>
 
   <div id="result">
-    <table id="resultTable">
+    <table>
       <thead>
         <tr>
           <th>Category</th>
@@ -109,63 +109,108 @@
   </div>
 
   <script>
-    // Set default date to today
+    // Default date = today
     document.getElementById('refDate').value = new Date().toISOString().split('T')[0];
 
+    // ─── CSV PARSER ───────────────────────────────────────────────────────────
     function parseCSV(text) {
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      // Normalize line endings
+      const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+      const headers = splitLine(lines[0]).map(h => h.trim().replace(/^"|"$/g, ''));
       const rows = [];
       for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        // Simple CSV parse (handles quoted fields)
-        const cols = splitCSVLine(lines[i]);
-        if (cols.length < headers.length) continue;
+        const line = lines[i].trim();
+        if (!line) continue;
+        const cols = splitLine(line).map(c => c.trim().replace(/^"|"$/g, ''));
         const row = {};
-        headers.forEach((h, idx) => {
-          row[h] = (cols[idx] || '').trim().replace(/^"|"$/g, '');
-        });
+        headers.forEach((h, idx) => { row[h] = cols[idx] !== undefined ? cols[idx] : ''; });
         rows.push(row);
       }
       return rows;
     }
 
-    function splitCSVLine(line) {
+    function splitLine(line) {
       const result = [];
-      let cur = '';
-      let inQuote = false;
+      let cur = '', inQ = false;
       for (let i = 0; i < line.length; i++) {
-        const c = line[i];
-        if (c === '"') { inQuote = !inQuote; }
-        else if (c === ',' && !inQuote) { result.push(cur); cur = ''; }
-        else { cur += c; }
+        if (line[i] === '"') { inQ = !inQ; }
+        else if (line[i] === ',' && !inQ) { result.push(cur); cur = ''; }
+        else { cur += line[i]; }
       }
       result.push(cur);
       return result;
     }
 
-    function parseDate(str) {
-      if (!str || str.trim() === '' || str.trim().toLowerCase() === 'nan') return null;
-      // Format: "27 Jan 2026 13:18" or "04 February 2026 14:27"
-      const months = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
-                       january:0,february:1,march:2,april:3,june:5,july:6,august:7,september:8,october:9,november:10,december:11 };
-      const parts = str.trim().split(/[\s:]+/);
-      // parts: ["27","Jan","2026","13","18"]
+    // ─── DATE PARSER ─────────────────────────────────────────────────────────
+    // Handles: "27 Jan 2026 13:18", "04 February 2026 8:03", "30 Jul 2026 0:00"
+    // Returns a Date object at midnight (00:00:00) of that day — time is intentionally ignored
+    // because we compare against day-level boundaries (lmtdEnd = 23:59:59).
+    // Using a number-based lookup avoids any locale/browser string issues.
+    const MONTH_MAP = {
+      jan:0, feb:1, mar:2, apr:3, may:4, jun:5,
+      jul:6, aug:7, sep:8, oct:9, nov:10, dec:11,
+      january:0, february:1, march:2, april:3, may:4, june:5,
+      july:6, august:7, september:8, october:9, november:10, december:11
+    };
+
+    function parseEnquiryDate(str) {
+      if (!str) return null;
+      const s = str.trim();
+      if (!s || s.toLowerCase() === 'nan') return null;
+      // Split on whitespace only (NOT on colon) to keep time as one token
+      // Format tokens: ["27", "Jan", "2026", "13:18"]
+      const parts = s.split(/\s+/);
       if (parts.length < 3) return null;
-      const day = parseInt(parts[0]);
-      const mon = months[parts[1].toLowerCase()];
-      const year = parseInt(parts[2]);
+      const day  = parseInt(parts[0], 10);
+      const mon  = MONTH_MAP[parts[1].toLowerCase()];
+      const year = parseInt(parts[2], 10);
       if (isNaN(day) || mon === undefined || isNaN(year)) return null;
-      return new Date(year, mon, day);
+      // Return midnight of that day — avoids any hour-level boundary issues
+      return new Date(year, mon, day, 0, 0, 0, 0);
     }
 
+    // ─── PERIOD BOUNDARIES ───────────────────────────────────────────────────
+    // MTD  : rows where Month column matches ref month name (already guaranteed by CSV export)
+    // LMTD : Tanggal Enquiry from day 1 to refDay of previous month (capped at last day of prev month)
+    // LM   : Tanggal Enquiry full previous month
+    // YTD  : all rows in CSV (export already covers Jan 1 – today)
+
+    function buildPeriods(refDateVal) {
+      // Parse "YYYY-MM-DD" manually to avoid timezone shifting
+      const [y, m, d] = refDateVal.split('-').map(Number);
+      const refYear  = y;
+      const refMonth = m - 1; // 0-indexed
+      const refDay   = d;
+
+      // MTD month name — use fixed English names, no locale dependency
+      const EN_MONTHS = ['January','February','March','April','May','June',
+                         'July','August','September','October','November','December'];
+      const mtdMonthName = EN_MONTHS[refMonth];
+
+      // Previous month info
+      const prevMonthIdx  = refMonth === 0 ? 11 : refMonth - 1;
+      const prevMonthYear = refMonth === 0 ? refYear - 1 : refYear;
+      // Last day of previous month (e.g. Feb=28/29, Apr=30, etc.)
+      const lastDayPrev   = new Date(prevMonthYear, prevMonthIdx + 1, 0).getDate();
+      const lmtdEndDay    = Math.min(refDay, lastDayPrev);
+
+      // All boundaries are at midnight — parseEnquiryDate also returns midnight dates
+      const lmtdStart = new Date(prevMonthYear, prevMonthIdx, 1,  0,  0,  0, 0);
+      const lmtdEnd   = new Date(prevMonthYear, prevMonthIdx, lmtdEndDay, 23, 59, 59, 999);
+      const lmStart   = new Date(prevMonthYear, prevMonthIdx, 1,  0,  0,  0, 0);
+      const lmEnd     = new Date(prevMonthYear, prevMonthIdx, lastDayPrev, 23, 59, 59, 999);
+
+      return { mtdMonthName, lmtdStart, lmtdEnd, lmStart, lmEnd, refDay, EN_MONTHS, refMonth, refYear };
+    }
+
+    // ─── ANALYZE ─────────────────────────────────────────────────────────────
     function analyze() {
       const fileInput = document.getElementById('csvFile');
       const refDateVal = document.getElementById('refDate').value;
       const status = document.getElementById('status');
 
       if (!fileInput.files[0]) { status.textContent = '⚠ Pilih file CSV dulu.'; return; }
-      if (!refDateVal) { status.textContent = '⚠ Isi tanggal MTD dulu.'; return; }
+      if (!refDateVal)          { status.textContent = '⚠ Isi tanggal MTD dulu.'; return; }
 
       status.textContent = 'Membaca file...';
 
@@ -175,86 +220,74 @@
           const rows = parseCSV(e.target.result);
           status.textContent = `File terbaca: ${rows.length} rows. Menghitung...`;
 
-          const ref = new Date(refDateVal); // e.g. 2026-06-25
-          const refDay = ref.getDate();
-          const refMonth = ref.getMonth();    // 0-indexed
-          const refYear = ref.getFullYear();
+          const P = buildPeriods(refDateVal);
 
-          // Period definitions
-          // MTD: Month column == current month name (from CSV)
-          const mtdMonthName = ref.toLocaleString('en-US', { month: 'long' }); // "June"
+          // Pre-parse Tanggal Enquiry once for all rows (performance)
+          rows.forEach(r => {
+            r._date = parseEnquiryDate(r['Tanggal Enquiry']);
+          });
 
-          // Last day of previous month — handles Feb 28/29, months with 30 days
-          // Math.min prevents overflow e.g. ref=31 Mar → LMTD end = 28 Feb, not 3 Mar
-          const lastDayPrevMonth = new Date(refYear, refMonth, 0).getDate();
-          const lmtdDay = Math.min(refDay, lastDayPrevMonth);
-
-          // LMTD: 1st of prev month to lmtdDay of prev month
-          const lmtdStart = new Date(refYear, refMonth - 1, 1);
-          const lmtdEnd   = new Date(refYear, refMonth - 1, lmtdDay, 23, 59, 59);
-
-          // LM: full previous month
-          const lmStart = new Date(refYear, refMonth - 1, 1);
-          const lmEnd   = new Date(refYear, refMonth, 0, 23, 59, 59);
-
-          function inPeriod(row, period) {
-            if (period === 'MTD') {
-              return (row['Month'] || '').trim() === mtdMonthName;
-            }
-            if (period === 'YTD') return true; // semua row di CSV = YTD
-            const d = parseDate(row['Tanggal Enquiry']);
+          function inPeriod(r, period) {
+            if (period === 'MTD')  return (r['Month'] || '').trim() === P.mtdMonthName;
+            if (period === 'YTD')  return true;
+            const d = r._date;
             if (!d) return false;
-            if (period === 'LMTD') return d >= lmtdStart && d <= lmtdEnd;
-            if (period === 'LM')   return d >= lmStart   && d <= lmEnd;
+            if (period === 'LMTD') return d >= P.lmtdStart && d <= P.lmtdEnd;
+            if (period === 'LM')   return d >= P.lmStart   && d <= P.lmEnd;
             return false;
           }
 
-          function count(filter) {
-            const periods = ['MTD', 'LMTD', 'LM', 'YTD'];
-            return periods.map(p => rows.filter(r => inPeriod(r, p) && filter(r)).length);
+          function count(filterFn) {
+            return ['MTD','LMTD','LM','YTD'].map(p =>
+              rows.filter(r => inPeriod(r, p) && filterFn(r)).length
+            );
           }
 
-          // Agent Type filters
-          const isInhouse      = r => (r['Agent Type'] || '').trim() === 'inhouse';
-          const isInhouseJV    = r => (r['Agent Type'] || '').trim() === 'inhouse_jv';
-          const isNSF          = r => (r['Agent Type'] || '').trim() === 'nsf';
-          const isExternal     = r => ['external','digital_sales'].includes((r['Agent Type'] || '').trim());
-          const isNotFound     = r => {
-            const at = (r['Agent Type'] || '').trim();
-            return at === '' || at.toLowerCase() === 'nan';
-          };
+          // Agent Type helpers
+          const at      = r => (r['Agent Type'] || '').trim();
+          const ln      = r => (r['Lead Nature'] || '').trim().toLowerCase();
+          const isNaN_  = v => !v || v.toLowerCase() === 'nan';
 
-          // Lead Nature filters
-          const nature = (r, n) => (r['Lead Nature'] || '').trim().toLowerCase() === n.toLowerCase();
+          const isInhouse  = r => at(r) === 'inhouse';
+          const isJV       = r => at(r) === 'inhouse_jv';
+          const isNSF      = r => at(r) === 'nsf';
+          const isExternal = r => at(r) === 'external' || at(r) === 'digital_sales';
+          const isNotFound = r => isNaN_(at(r));
 
-          const rows_data = [
-            { label: 'Total Leads',     cls: 'section-header', vals: count(r => true) },
-            { label: 'SAP CX',          cls: 'section-header', vals: count(isInhouse) },
-            { label: 'Organic',         cls: 'sub',            vals: count(r => isInhouse(r) && nature(r,'Organic')) },
-            { label: 'Unique URL',      cls: 'sub',            vals: count(r => isInhouse(r) && nature(r,'Unique URL')) },
-            { label: 'Paid Ads',        cls: 'sub',            vals: count(r => isInhouse(r) && nature(r,'Paid Ads')) },
-            { label: 'Indirect',        cls: 'sub',            vals: count(r => isInhouse(r) && nature(r,'Indirect')) },
-            { label: 'JV Leads',        cls: 'section-header', vals: count(isInhouseJV) },
-            { label: 'Organic',         cls: 'sub',            vals: count(r => isInhouseJV(r) && nature(r,'Organic')) },
-            { label: 'Unique URL',      cls: 'sub',            vals: count(r => isInhouseJV(r) && nature(r,'Unique URL')) },
-            { label: 'Paid Ads',        cls: 'sub',            vals: count(r => isInhouseJV(r) && nature(r,'Paid Ads')) },
-            { label: 'Indirect',        cls: 'sub',            vals: count(r => isInhouseJV(r) && nature(r,'Indirect')) },
-            { label: 'NSF',             cls: 'section-header', vals: count(isNSF) },
-            { label: 'External Agent',  cls: 'section-header', vals: count(isExternal) },
-            { label: 'Not Found',       cls: 'section-header', vals: count(isNotFound) },
+          const nat = (r, n) => ln(r) === n.toLowerCase();
+
+          const TABLE = [
+            { label: 'Total Leads',    cls: 'section-header', fn: r => true },
+            { label: 'SAP CX',         cls: 'section-header', fn: isInhouse },
+            { label: 'Organic',        cls: 'sub',            fn: r => isInhouse(r) && nat(r,'Organic') },
+            { label: 'Unique URL',     cls: 'sub',            fn: r => isInhouse(r) && nat(r,'Unique URL') },
+            { label: 'Paid Ads',       cls: 'sub',            fn: r => isInhouse(r) && nat(r,'Paid Ads') },
+            { label: 'Indirect',       cls: 'sub',            fn: r => isInhouse(r) && nat(r,'Indirect') },
+            { label: 'JV Leads',       cls: 'section-header', fn: isJV },
+            { label: 'Organic',        cls: 'sub',            fn: r => isJV(r) && nat(r,'Organic') },
+            { label: 'Unique URL',     cls: 'sub',            fn: r => isJV(r) && nat(r,'Unique URL') },
+            { label: 'Paid Ads',       cls: 'sub',            fn: r => isJV(r) && nat(r,'Paid Ads') },
+            { label: 'Indirect',       cls: 'sub',            fn: r => isJV(r) && nat(r,'Indirect') },
+            { label: 'NSF',            cls: 'section-header', fn: isNSF },
+            { label: 'External Agent', cls: 'section-header', fn: isExternal },
+            { label: 'Not Found',      cls: 'section-header', fn: isNotFound },
           ];
 
           const tbody = document.getElementById('tableBody');
           tbody.innerHTML = '';
-          rows_data.forEach(row => {
+          TABLE.forEach(row => {
+            const vals = count(row.fn);
             const tr = document.createElement('tr');
             if (row.cls) tr.className = row.cls;
-            tr.innerHTML = `<td>${row.label}</td>${row.vals.map(v => `<td>${v}</td>`).join('')}`;
+            tr.innerHTML = `<td>${row.label}</td>` + vals.map(v => `<td>${v}</td>`).join('');
             tbody.appendChild(tr);
           });
 
           document.getElementById('result').style.display = 'block';
-          status.textContent = `✓ Selesai. Referensi tanggal: ${ref.toDateString()} | MTD bulan: ${mtdMonthName}`;
+          status.textContent =
+            `✓ Selesai — ${rows.length} rows dibaca | MTD: ${P.mtdMonthName} | ` +
+            `LMTD: 1–${Math.min(P.refDay, new Date(P.lmtdEnd).getDate())} ${P.EN_MONTHS[P.lmtdStart.getMonth()]} ${P.lmtdStart.getFullYear()}`;
+
         } catch(err) {
           status.textContent = '✗ Error: ' + err.message;
           console.error(err);
