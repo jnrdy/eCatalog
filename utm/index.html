@@ -199,13 +199,6 @@
                 <option value=ecatalog_articleenr>ecatalog_articleenr</option>
             </select>
             <p>Biasanya buat link UTM untuk tim SEO dan AM, Description - Campaign tidak perlu diganti-ganti.</p>
-            <label for="paramStart">Parameter Start Symbol:</label>
-            <select id="paramStart" name="paramStart">
-                <option value="?">?</option>
-                <option value="&">&</option>
-            </select>
-            <p>Gunakan start parameter "?" bila URL yang diinput tidak ada simbol "?".</p>
-            <p>Gunakan start parameter "&" bila URL yang diinput sudah terdapat simbol "?".</p>
             <h2>Content UTM</h2>
             <label for=year>Year:</label>
             <select id=year name=year>
@@ -245,6 +238,13 @@
             <p id="paramWarning" style="color:red; font-weight:bold; display:none;">
                 ⚠️ URL sudah mengandung parameter, ubah Parameter Start Symbol menjadi "&" agar valid.
             </p>
+             <label for="paramStart">Parameter Start Symbol:</label>
+            <select id="paramStart" name="paramStart">
+                <option value="?">?</option>
+                <option value="&">&</option>
+            </select>
+            <p>Gunakan start parameter "?" bila URL yang diinput tidak ada simbol "?".</p>
+            <p>Gunakan start parameter "&" bila URL yang diinput sudah terdapat simbol "?".</p>
             <div id=autoFillContainer>
                 <label for=autoFillOption>Auto Fill Options:</label>
                 <select id=autoFillOption onchange=checkAutoFill()>
@@ -388,6 +388,7 @@
         const specificUrls = {
             "https://ecatalog.sinarmasland.com/infiniteliving": "infiniteliving",
             "https://ecatalog.sinarmasland.com/moveinquickly": "moveinquickly",
+            "https://ecatalog.sinarmasland.com/royalkey": "royalkey",
             "https://ecatalog.sinarmasland.com/sinarmas-pillar": "smpillar",
             "https://ecatalog.sinarmasland.com/search": "search",
             "https://ecatalog.sinarmasland.com/signup": "signup",
@@ -748,9 +749,5 @@
             });
         }
     </script>
-
 </body>
-
 </html>
-
-
